@@ -5,9 +5,9 @@
   "compatibility_flags": ["nodejs_compat"],
 
   // Cron trigger: fires every minute
-  //"triggers": {
-  //  "crons": ["* * * * *"]
-  //},
+  "triggers": {
+    "crons": ["* * * * *"]
+  },
 
   // KV namespace to persist the log cursor (last seen timestamp per resource type)
   // Run: npx wrangler kv namespace create LOG_STATE

@@ -1,0 +1,29 @@
+name: Deploy Worker
+
+on:
+  push:
+    branches:
+      - main # O el nombre de tu rama principal (master)
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy with Wrangler
+        uses: cloudflare/wrangler-action@v3
+        env:
+          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
