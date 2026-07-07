@@ -1,0 +1,29 @@
+{
+  "name": "render-log-monitor",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-02-08",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Cron trigger: fires every minute
+  //"triggers": {
+  //  "crons": ["* * * * *"]
+  //},
+
+  // KV namespace to persist the log cursor (last seen timestamp per resource type)
+  // Run: npx wrangler kv namespace create LOG_STATE
+  // Then replace <KV_NAMESPACE_ID> with the ID returned.
+  "kv_namespaces": [
+    {
+      "binding": "LOG_STATE",
+      "id": "bd5d3c07cc484a7cabc94bd46528b7fe",
+      "preview_id": "bd5d3c07cc484a7cabc94bd46528b7f"
+    }
+  ]
+
+  // Secrets — set via: npx wrangler secret put <KEY>
+  // RENDER_API_KEY
+  // RENDER_OWNER_ID
+  // RENDER_SERVICE_ID
+  // DISCORD_BOT_TOKEN
+  // DISCORD_CHANNEL_ID
+}

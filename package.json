@@ -1,0 +1,16 @@
+{
+  "name": "render-log-monitor",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker that monitors Render.com logs and sends alerts to Discord",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev --test-scheduled",
+    "deploy": "wrangler deploy",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240208.0",
+    "typescript": "^5.3.3",
+    "wrangler": "^3.28.0"
+  }
+}
