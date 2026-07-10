@@ -4,7 +4,7 @@
  * Does NOT use discord.py or any WebSocket connection — pure HTTP.
  */
 
-import type { Env } from "./renderClient";
+import type { Env } from "./env";
 import type { LogEvent } from "./logFilter";
 
 const DISCORD_API = "https://discord.com/api/v10";

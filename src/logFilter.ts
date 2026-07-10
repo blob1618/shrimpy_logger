@@ -23,12 +23,16 @@ export type DeployFailEvent = {
 
 export type LogEvent = AppErrorEvent | DeployOkEvent | DeployFailEvent;
 
-/** Shape of a single log entry returned by Render API */
+/** Shape of a single log entry returned by Render Datadog Log Stream */
 export interface RenderLogEntry {
-  id: string;
-  timestamp: string;
-  message: string;
-  labels?: { name: string; value: string }[];
+  message?: string;
+  timestamp?: string | number;
+  date?: string | number;
+  status?: string;
+  level?: string;
+  type?: string;
+  ddsource?: string;
+  [key: string]: any;
 }
 
 // Patterns indicating a successful deploy in Render build logs
@@ -46,35 +50,57 @@ const IGNORED_PATTERNS: RegExp[] = [];
 /**
  * Classifies a list of Render log entries into typed LogEvents.
  * Only returns events we care about:
- *   - app errors (type=app, level=error)
- *   - successful deploys (type=build, message matches success patterns)
- *   - failed deploys (type=build, level=error)
+ *   - app errors (status or level = error)
+ *   - successful deploys (message matches success patterns)
+ *   - failed deploys
  */
 export function classifyLogs(entries: RenderLogEntry[]): LogEvent[] {
   const events: LogEvent[] = [];
 
   for (const entry of entries) {
-    const { message, timestamp, labels } = entry;
-    const type = labels?.find(l => l.name === 'type')?.value;
-    const level = labels?.find(l => l.name === 'level')?.value;
+    if (!entry) continue;
+
+    const message = entry.message || "";
+    if (!message) continue;
+
+    const tsValue = entry.timestamp || entry.date || Date.now();
+    const timestamp =
+      typeof tsValue === "number"
+        ? new Date(tsValue).toISOString()
+        : String(tsValue);
+
+    // Extract level/status, checking nested render object if it exists
+    const levelStr = String(
+      entry.status ||
+      entry.level ||
+      entry.render?.log?.level ||
+      "info"
+    ).toLowerCase();
+
+    const typeStr = String(
+      entry.type ||
+      entry.ddsource ||
+      entry.render?.log?.type ||
+      "app"
+    ).toLowerCase();
 
     // Skip ignored patterns
     if (IGNORED_PATTERNS.some((p) => p.test(message))) continue;
 
-    if (type === "app" && level === "error") {
-      events.push({ kind: "app_error", message, timestamp, level });
-      continue;
-    }
+    const isError = levelStr === "error" || levelStr === "err" || levelStr === "critical";
+    const isBuild = typeStr.includes("build");
 
-    if (type === "build") {
+    if (isBuild) {
       if (DEPLOY_SUCCESS_PATTERNS.some((p) => p.test(message))) {
         events.push({ kind: "deploy_ok", timestamp });
         continue;
       }
-      if (level === "error") {
+      if (isError) {
         events.push({ kind: "deploy_fail", message, timestamp });
         continue;
       }
+    } else if (isError) {
+      events.push({ kind: "app_error", message, timestamp, level: levelStr });
     }
   }
 
